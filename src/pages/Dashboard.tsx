@@ -13,7 +13,8 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import AuthGuard from "../components/AuthGuard";
 import { Badge } from "../components/Badge";
 
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../config";
+
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("es-AR", { style: "currency", currency: "ARS" });

@@ -32,7 +32,8 @@ type Propiedad = {
   direccion: string;
 };
 
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../config";
+
 
 export default function Pagos() {
   const [pagos, setPagos] = useState<Pago[]>([]);

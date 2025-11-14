@@ -17,7 +17,8 @@ type Propiedad = {
   foto_url?: string;
 };
 
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../config";
+
 
 export default function Propiedades() {
   const [propiedades, setPropiedades] = useState<Propiedad[]>([]);
@@ -30,7 +31,7 @@ export default function Propiedades() {
     direccion: "",
     precio: "",
     disponible: true,
-    foto_url: "", // 🔥 nuevo campo
+    foto_url: "", 
   });
 
   const [alerta, setAlerta] = useState<{ tipo: "success" | "error"; mensaje: string } | null>(null);

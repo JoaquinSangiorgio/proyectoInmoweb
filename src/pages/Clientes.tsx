@@ -21,7 +21,8 @@ type Cliente = {
   estado: "activo" | "inactivo" | "moroso";
 };
 
-const API_URL = "http://localhost:4000";
+import { API_URL } from "../config";
+
 
 export default function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);

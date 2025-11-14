@@ -11,8 +11,7 @@ const { Pool } = pkg;
 // 🟢 Conexión a PostgreSQL (Railway)
 const pool = new Pool({
   connectionString:
-    process.env.DATABASE_URL ||
-    "postgresql://postgres:KpljyVCMROfpcXpAoOLgINhvYtFKiCxo@gondola.proxy.rlwy.net:33006/railway",
+    process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }, // importante para Railway
 });
 

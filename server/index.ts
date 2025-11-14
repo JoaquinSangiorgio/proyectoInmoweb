@@ -19,10 +19,14 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 app.use(cors({
-  origin: "*",
+  origin: [
+    "https://inmobiliaria-uufh.vercel.app",
+    "http://localhost:5173"
+  ],
   methods: "GET,POST,PUT,DELETE",
-  allowedHeaders: "Content-Type, Authorization",
+  allowedHeaders: "Content-Type",
 }));
+
 
 app.use(express.json());
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Home, Search, Plus, Trash2, Edit } from "lucide-react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import AuthGuard from "../components/AuthGuard";

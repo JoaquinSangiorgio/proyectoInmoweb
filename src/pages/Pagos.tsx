@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "../components/Card";
+import { useEffect, useState } from "react";
+
 import { Badge } from "../components/Badge";
 import DashboardLayout from "../layouts/DashboardLayout";
 import AuthGuard from "../components/AuthGuard";

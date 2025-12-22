@@ -20,7 +20,7 @@ const PORT = process.env.PORT ;
 
 app.use(cors({
   origin: [
-    "https://inmobiliaria-uufh.vercel.app",
+    "https://proyecto-inmoweb.vercel.app/dashboard",
     "http://localhost:5173"
   ],
   methods: "GET,POST,PUT,DELETE",

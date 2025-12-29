@@ -12,7 +12,7 @@ const { Pool } = pkg;
 const pool = new Pool({
   connectionString:
     process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, // importante para Railway
+  ssl: { rejectUnauthorized: false }, 
 });
 
 const app = express();
@@ -21,7 +21,7 @@ const PORT = process.env.PORT ;
 app.use(cors({
   origin: [
     "https://proyecto-inmoweb.vercel.app/dashboard",
-    "http://localhost:5173"
+    "http://localhost:5173" 
   ],
   methods: "GET,POST,PUT,DELETE",
   allowedHeaders: "Content-Type",

@@ -20,6 +20,6 @@
     /* ---- Otros ---- */
     "resolveJsonModule": true
   },
-  "include": ["./**/*.ts"],
+  "include": ["./**/*.ts", "index.js"],
   "exclude": ["node_modules"]
 }

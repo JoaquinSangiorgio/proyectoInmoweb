@@ -2,35 +2,39 @@ import express from "express";
 import cors from "cors";
 import pkg from "pg";
 import dotenv from "dotenv";
-
-
+import { MercadoPagoConfig, Preference } from "mercadopago";
 
 dotenv.config();
 const { Pool } = pkg;
 
-// 🟢 Conexión a PostgreSQL (Railway)
+// ===========================
+// 🔹 POSTGRES (RAILWAY)
+// ===========================
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }, 
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
 });
 
+// ===========================
+// 🔹 APP
+// ===========================
 const app = express();
-const PORT = process.env.PORT ;
+const PORT = process.env.PORT || 4000;
 
 app.use(cors({
   origin: [
-    "https://proyecto-inmoweb.vercel.app/dashboard",
-    "http://localhost:5173" 
+    "https://proyecto-inmoweb-gt86.vercel.app",
+    "http://localhost:5173",
   ],
-  methods: "GET,POST,PUT,DELETE",
-  allowedHeaders: "Content-Type",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"],
 }));
-
 
 app.use(express.json());
 
-// --- ENDPOINT DE PRUEBA ---
+// ===========================
+// 🔹 TEST
+// ===========================
 app.get("/", (req, res) => {
   res.send("✅ API conectada y funcionando correctamente");
 });
@@ -38,8 +42,6 @@ app.get("/", (req, res) => {
 // ===========================
 // 🔹 CLIENTES
 // ===========================
-
-// 🟢 GET todos
 app.get("/clientes", async (req, res) => {
   try {
     const result = await pool.query("SELECT * FROM clientes ORDER BY id ASC");
@@ -50,12 +52,13 @@ app.get("/clientes", async (req, res) => {
   }
 });
 
-// 🟡 POST nuevo
 app.post("/clientes", async (req, res) => {
   try {
     const { nombre, email, telefono, propiedades, estado } = req.body;
     const result = await pool.query(
-      "INSERT INTO clientes (nombre, email, telefono, propiedades, estado) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+      `INSERT INTO clientes (nombre, email, telefono, propiedades, estado)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
       [nombre, email, telefono, propiedades, estado]
     );
     res.json(result.rows[0]);
@@ -65,22 +68,23 @@ app.post("/clientes", async (req, res) => {
   }
 });
 
-// 🔵 PUT editar
 app.put("/clientes/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { nombre, email, telefono, propiedades, estado } = req.body;
 
-    // 🔹 Verificamos si el cliente existe antes de actualizar
-    const check = await pool.query("SELECT id FROM clientes WHERE id = $1", [id]);
+    const check = await pool.query(
+      "SELECT id FROM clientes WHERE id = $1",
+      [id]
+    );
     if (check.rows.length === 0) {
-      return res.status(404).json({ error: "Cliente no encontrado en la base de datos" });
+      return res.status(404).json({ error: "Cliente no encontrado" });
     }
 
     const result = await pool.query(
       `UPDATE clientes
-       SET nombre = $1, email = $2, telefono = $3, propiedades = $4, estado = $5
-       WHERE id = $6
+       SET nombre=$1, email=$2, telefono=$3, propiedades=$4, estado=$5
+       WHERE id=$6
        RETURNING *`,
       [nombre, email, telefono, propiedades, estado, id]
     );
@@ -88,18 +92,17 @@ app.put("/clientes/:id", async (req, res) => {
     res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error actualizando cliente:", error);
-    res.status(500).json({
-      error: "Error interno al actualizar el cliente",
-      details: (error as Error).message,
-    });
+    res.status(500).json({ error: "Error actualizando cliente" });
   }
 });
 
-// 🔴 DELETE eliminar
 app.delete("/clientes/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("DELETE FROM clientes WHERE id=$1", [id]);
+    const result = await pool.query(
+      "DELETE FROM clientes WHERE id=$1",
+      [id]
+    );
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Cliente no encontrado" });
     }
@@ -111,7 +114,7 @@ app.delete("/clientes/:id", async (req, res) => {
 });
 
 // ===========================
-// 🔹 PROPIEDADES (con foto_url)
+// 🔹 PROPIEDADES
 // ===========================
 app.get("/propiedades", async (req, res) => {
   try {
@@ -123,18 +126,15 @@ app.get("/propiedades", async (req, res) => {
   }
 });
 
-// 🟡 Crear propiedad con foto_url opcional
 app.post("/propiedades", async (req, res) => {
   try {
     const { direccion, precio, disponible, foto_url } = req.body;
-
     const result = await pool.query(
       `INSERT INTO propiedades (direccion, precio, disponible, foto_url)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
       [direccion, precio, disponible, foto_url || null]
     );
-
     res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error creando propiedad:", error);
@@ -142,7 +142,6 @@ app.post("/propiedades", async (req, res) => {
   }
 });
 
-// 🔵 Editar propiedad con foto_url
 app.put("/propiedades/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -170,7 +169,10 @@ app.put("/propiedades/:id", async (req, res) => {
 app.delete("/propiedades/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query("DELETE FROM propiedades WHERE id=$1", [id]);
+    const result = await pool.query(
+      "DELETE FROM propiedades WHERE id=$1",
+      [id]
+    );
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Propiedad no encontrada" });
     }
@@ -181,31 +183,33 @@ app.delete("/propiedades/:id", async (req, res) => {
   }
 });
 
-
 // ===========================
-// 🔹 PAGOS
+// 🔹 PAGOS (CORREGIDO)
 // ===========================
 app.get("/pagos", async (req, res) => {
   const result = await pool.query("SELECT * FROM pagos ORDER BY id ASC");
-
-  // 🧠 Normalizar nombres SQL → camelCase
-  const data = result.rows.map((p) => ({
-    ...p,
-    fechaVencimiento: p.fecha_vencimiento,
-    fechaPago: p.fecha_pago,
-  }));
-
-  res.json(data);
+  res.json(result.rows);
 });
 
 app.post("/pagos", async (req, res) => {
   try {
-    const { cliente, propiedad, monto, estado, fechaVencimiento, fechaPago } = req.body;
+    const {
+      cliente,
+      propiedad,
+      monto,
+      estado,
+      fechaVencimiento,
+      fechaPago,
+    } = req.body;
+
     const result = await pool.query(
-      `INSERT INTO pagos (cliente, propiedad, monto, estado, fechavencimiento, fechapago)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      `INSERT INTO pagos
+       (cliente, propiedad, monto, estado, fecha_vencimiento, fecha_pago)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING *`,
       [cliente, propiedad, monto, estado, fechaVencimiento, fechaPago]
     );
+
     res.json(result.rows[0]);
   } catch (error) {
     console.error("❌ Error creando pago:", error);
@@ -213,99 +217,50 @@ app.post("/pagos", async (req, res) => {
   }
 });
 
-app.put("/pagos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { cliente, propiedad, monto, estado, fechaVencimiento, fechaPago } = req.body;
-    const result = await pool.query(
-      `UPDATE pagos
-       SET cliente=$1, propiedad=$2, monto=$3, estado=$4, fechavencimiento=$5, fechapago=$6
-       WHERE id=$7 RETURNING *`,
-      [cliente, propiedad, monto, estado, fechaVencimiento, fechaPago, id]
-    );
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Pago no encontrado" });
-    }
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error("❌ Error actualizando pago:", error);
-    res.status(500).json({ error: "Error actualizando pago" });
-  }
-});
-
-app.delete("/pagos/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-    const result = await pool.query("DELETE FROM pagos WHERE id=$1", [id]);
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Pago no encontrado" });
-    }
-    res.json({ message: "Pago eliminado correctamente" });
-  } catch (error) {
-    console.error("❌ Error eliminando pago:", error);
-    res.status(500).json({ error: "Error eliminando pago" });
-  }
-});
-
-// --- MERCADO PAGO QR / Checkout Presencial ---
-import { MercadoPagoConfig, Preference } from "mercadopago";
-
-// 🔹 Token del vendedor (cuenta de prueba “Inmo”)
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN || "APP_USR-2255742485215159-111210-54f049d9a08c41fe4cfcc8c31dacab14-2984639708",
+// ===========================
+// 🔹 MERCADO PAGO
+// ===========================
+const mpClient = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
 app.post("/mercadopago/crear-qr", async (req, res) => {
   try {
     const { titulo, monto, cliente, idPago } = req.body;
 
-    const preference = new Preference(client);
+    const preference = new Preference(mpClient);
 
-    const body = {
-      items: [
-        {
-          id: idPago?.toString() || "1",
-          title: titulo || `Pago de ${cliente}`,
-          quantity: 1,
-          unit_price: Number(monto),
-          currency_id: "ARS",
-        },
-      ],
-      payer: {
-        name: cliente,
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: String(idPago || "1"),
+            title: titulo || `Pago de ${cliente}`,
+            quantity: 1,
+            unit_price: Number(monto),
+            currency_id: "ARS",
+          },
+        ],
+        payer: { name: cliente },
+        metadata: { idPago },
       },
-      metadata: { idPago },
-      back_urls: {
-        success: "https://www.mercadopago.com.ar", 
-        failure: "https://www.mercadopago.com.ar",
-      },
-      auto_return: "approved",
-    };
+    });
 
-    const result: any = await preference.create({ body });
-
-   const qr_url =
-      result.init_point ||
-      result.sandbox_init_point ||
-      result.body?.init_point ||
-      "https://www.mercadopago.com.ar";
-
-    res.json({ qr_url });
-  } catch (error: any) {
-    console.error("❌ Error creando QR de pago:", error);
-    res.status(500).json({ error: error.message });
+    res.json({
+      qr_url:
+        result.init_point ||
+        result.sandbox_init_point ||
+        "https://www.mercadopago.com.ar",
+    });
+  } catch (error) {
+    console.error("❌ Error creando QR MercadoPago:", error);
+    res.status(500).json({ error: "Error creando QR" });
   }
 });
 
-
-
-
-
-
-
-
-
-// 🚀 Servidor en marcha
+// ===========================
+// 🚀 START
+// ===========================
 app.listen(PORT, () => {
   console.log(`✅ Servidor corriendo en puerto ${PORT}`);
 });
